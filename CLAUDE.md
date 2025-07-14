@@ -38,6 +38,10 @@ python vid.py
 - Press 'q' to quit
 - Press 'r' to reset tracking
 - Press 't' to toggle trajectory visualization
+- Press 'o' to toggle ROI mode
+- Press 's' to toggle ROI selection mode (mouse drag to create ROI)
+- Press 'c' to clear all ROI regions
+- Press 'a' to toggle adaptive ROI
 
 ## Development Notes
 
@@ -51,6 +55,9 @@ python vid.py
 - Queue-based frame buffering with overflow protection
 - Configurable confidence threshold (0.4 default)
 - Minimum object area filtering (1000 pixels)
+- ROI (Region of Interest) processing for computational optimization
+- GPU memory pooling for efficient ROI processing
+- Adaptive ROI adjustment based on object detection
 
 ### Tracking System
 - Maintains trajectory history for each tracked object (max 30 points)
@@ -66,3 +73,21 @@ Camera settings are configured in `main()`:
 - Buffer size: 1 (reduced latency)
 
 Model confidence and tracking parameters can be adjusted in the `_process_worker` method.
+
+### ROI Optimization Features
+
+The system includes advanced ROI processing to reduce computational load:
+
+- **Manual ROI Selection**: Use mouse drag to define specific regions for processing
+- **Adaptive ROI**: Automatically adjusts ROI regions based on object detections
+- **GPU Memory Pooling**: Pre-allocated GPU memory for different ROI sizes (320x320, 416x416, 512x512, 640x640)
+- **ROI Merging**: Automatically merges overlapping ROI regions for efficiency
+- **Reduced Processing**: Only processes defined ROI regions instead of full frames
+
+### ROI Configuration
+
+Key ROI parameters in `OptimizedYOLOTracker`:
+- `roi_expansion_factor`: 1.2 (how much to expand detected objects for ROI)
+- `roi_min_size`: (160, 160) minimum ROI dimensions
+- `process_every_n_frames`: Frame skipping for optimization
+- ROI confidence threshold: 0.3 (lower than full frame for better detection in small regions)
