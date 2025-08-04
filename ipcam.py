@@ -125,6 +125,10 @@ class OptimizedYOLOTracker:
         """
         Inicia el procesamiento de video en hilos.
         """
+        window_name = "YOLOv8 Live Tracking"
+        cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+        print("Presiona 'f' para activar/desactivar la pantalla completa.")
+
         self.capture_thread = threading.Thread(target=self._capture_worker, args=(cap,), daemon=True)
         self.capture_thread.start()
         self.process_thread.start()
@@ -132,8 +136,12 @@ class OptimizedYOLOTracker:
         while not self.stop_event.is_set():
             try:
                 results = self.results_queue.get(timeout=1)
-                frame = self.draw_results(results[0].orig_img.copy(), results)
-                cv2.imshow("YOLOv8 Live Tracking", frame)
+                # Asegurarse de que la imagen original no esté vacía
+                if results and results[0].orig_img is not None:
+                    frame = self.draw_results(results[0].orig_img.copy(), results)
+                    cv2.imshow(window_name, frame)
+                else:
+                    continue
             except queue.Empty:
                 continue
             
@@ -141,6 +149,10 @@ class OptimizedYOLOTracker:
             if key == ord('q'):
                 self.stop_event.set()
                 break
+            elif key == ord('f'):  # Tecla 'f' para alternar pantalla completa
+                is_fullscreen = cv2.getWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN) == cv2.WINDOW_FULLSCREEN
+                cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN, 
+                                      cv2.WINDOW_NORMAL if is_fullscreen else cv2.WINDOW_FULLSCREEN)
 
         self.stop_event.set()
         self.capture_thread.join()
